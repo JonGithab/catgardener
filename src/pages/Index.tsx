@@ -165,7 +165,7 @@ export default function Index() {
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Leaf className="h-4 w-4 text-primary" />
-            <span>Kodrees GardenGuide</span>
+            <span>Cat Gardener Guide</span>
           </div>
           <p>Helping you grow beautiful gardens 🌱</p>
         </div>
