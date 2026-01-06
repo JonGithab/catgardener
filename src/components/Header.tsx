@@ -20,7 +20,7 @@ export function Header() {
             <Leaf className="h-5 w-5" />
           </div>
           <span className="font-display text-xl font-semibold text-foreground">
-            GardenGuide
+            Cat Gardener Guide
           </span>
         </Link>
 
