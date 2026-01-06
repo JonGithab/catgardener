@@ -11,8 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Search, Sun, CloudSun, Cloud, Droplets, Ruler, Users, AlertTriangle, Lightbulb } from 'lucide-react';
+import { Search, Sun, CloudSun, Cloud, Droplets, Ruler, Users, AlertTriangle, Lightbulb, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useHardinessZone } from '@/hooks/useHardinessZone';
+import { ZoneSelector } from '@/components/ZoneSelector';
+import { ZoneBadge } from '@/components/ZoneBadge';
+import { isPlantSuitableForZone, plantZones } from '@/data/plantZones';
 
 const sunIcons = {
   'full-sun': Sun,
@@ -27,18 +31,33 @@ const sunLabels = {
 };
 
 type SunFilter = 'all' | 'full-sun' | 'partial-shade' | 'shade';
+type ZoneFilter = 'all' | 'suitable';
 
 export default function Plants() {
   const [search, setSearch] = useState('');
   const [sunFilter, setSunFilter] = useState<SunFilter>('all');
+  const [zoneFilter, setZoneFilter] = useState<ZoneFilter>('all');
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
+  
+  const { zone, isLoading, error, detectZone, setManualZone, clearZone } = useHardinessZone();
 
   const filteredPlants = plants.filter(plant => {
     const matchesSearch = plant.name.toLowerCase().includes(search.toLowerCase()) ||
       plant.description.toLowerCase().includes(search.toLowerCase());
     const matchesSun = sunFilter === 'all' || plant.sunRequirement === sunFilter;
-    return matchesSearch && matchesSun;
+    const matchesZone = zoneFilter === 'all' || !zone || isPlantSuitableForZone(plant.id, zone);
+    return matchesSearch && matchesSun && matchesZone;
   });
+  
+  // Sort plants: suitable for zone first, then alphabetically
+  const sortedPlants = zone
+    ? [...filteredPlants].sort((a, b) => {
+        const aScore = isPlantSuitableForZone(a.id, zone) ? 0 : 1;
+        const bScore = isPlantSuitableForZone(b.id, zone) ? 0 : 1;
+        if (aScore !== bScore) return aScore - bScore;
+        return a.name.localeCompare(b.name);
+      })
+    : filteredPlants;
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,6 +73,18 @@ export default function Plants() {
           </p>
         </div>
 
+        {/* Zone Selector */}
+        <div className="mb-6">
+          <ZoneSelector
+            zone={zone}
+            isLoading={isLoading}
+            error={error}
+            onDetect={detectZone}
+            onManualSelect={setManualZone}
+            onClear={clearZone}
+          />
+        </div>
+
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
@@ -65,7 +96,7 @@ export default function Plants() {
               className="pl-10"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(['all', 'full-sun', 'partial-shade', 'shade'] as SunFilter[]).map(filter => {
               const Icon = filter === 'all' ? Sun : sunIcons[filter as keyof typeof sunIcons];
               return (
@@ -83,12 +114,23 @@ export default function Plants() {
                 </Button>
               );
             })}
+            {zone && (
+              <Button
+                variant={zoneFilter === 'suitable' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setZoneFilter(zoneFilter === 'all' ? 'suitable' : 'all')}
+                className="gap-2"
+              >
+                <MapPin className="h-4 w-4" />
+                <span className="hidden sm:inline">Zone {zone} Only</span>
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Plant Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredPlants.map((plant, index) => (
+          {sortedPlants.map((plant, index) => (
             <div
               key={plant.id}
               className="animate-fade-in-up"
@@ -97,12 +139,13 @@ export default function Plants() {
               <PlantCard
                 plant={plant}
                 onClick={() => setSelectedPlant(plant)}
+                zoneBadge={zone ? <ZoneBadge plantId={plant.id} userZone={zone} /> : undefined}
               />
             </div>
           ))}
         </div>
 
-        {filteredPlants.length === 0 && (
+        {sortedPlants.length === 0 && (
           <div className="py-12 text-center">
             <p className="text-muted-foreground">No plants found matching your criteria.</p>
           </div>
@@ -121,7 +164,19 @@ export default function Plants() {
             </DialogHeader>
 
             <div className="space-y-6 pt-4">
-              <p className="text-muted-foreground">{selectedPlant.description}</p>
+              <div className="space-y-3">
+                <p className="text-muted-foreground">{selectedPlant.description}</p>
+                {zone && (
+                  <div className="flex items-center gap-2">
+                    <ZoneBadge plantId={selectedPlant.id} userZone={zone} />
+                    {plantZones[selectedPlant.id] && (
+                      <span className="text-xs text-muted-foreground">
+                        (Zones {plantZones[selectedPlant.id].minZone}-{plantZones[selectedPlant.id].maxZone})
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Quick Stats */}
               <div className="grid grid-cols-3 gap-4">
@@ -141,9 +196,12 @@ export default function Plants() {
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted text-center">
-                  <Ruler className="h-5 w-5 mx-auto mb-1 text-garden-soil" />
+                  <MapPin className="h-5 w-5 mx-auto mb-1 text-primary" />
                   <p className="text-xs text-muted-foreground">
-                    {selectedPlant.spacing}" spacing
+                    {plantZones[selectedPlant.id] 
+                      ? `Zones ${plantZones[selectedPlant.id].minZone}-${plantZones[selectedPlant.id].maxZone}`
+                      : 'All zones'
+                    }
                   </p>
                 </div>
               </div>

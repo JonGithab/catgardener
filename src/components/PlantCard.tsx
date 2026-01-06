@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Plant } from '@/types/garden';
 import { Sun, CloudSun, Cloud, Droplets, Ruler } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,6 +9,7 @@ interface PlantCardProps {
   selected?: boolean;
   compact?: boolean;
   draggable?: boolean;
+  zoneBadge?: ReactNode;
 }
 
 const sunIcons = {
@@ -22,7 +24,7 @@ const sunLabels = {
   'shade': 'Shade',
 };
 
-export function PlantCard({ plant, onClick, selected, compact, draggable }: PlantCardProps) {
+export function PlantCard({ plant, onClick, selected, compact, draggable, zoneBadge }: PlantCardProps) {
   const SunIcon = sunIcons[plant.sunRequirement];
 
   if (compact) {
@@ -75,6 +77,9 @@ export function PlantCard({ plant, onClick, selected, compact, draggable }: Plan
       <h3 className="font-display text-lg font-semibold text-foreground mb-1">
         {plant.name}
       </h3>
+      
+      {zoneBadge && <div className="mb-2">{zoneBadge}</div>}
+      
       <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
         {plant.description}
       </p>
