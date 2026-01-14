@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://catgardenerlovable.app
+**URL**: https://catgardener.lovable.app
 
 **Follow these steps:**
 
