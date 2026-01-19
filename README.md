@@ -418,4 +418,3 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-<p align="center">Made with 💚 using <a href="https://lovable.dev">Lovable</a></p>
