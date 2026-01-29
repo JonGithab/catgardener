@@ -2,8 +2,6 @@
 
 A comprehensive gardening assistant application for planning garden layouts, tracking watering schedules, and providing plant care tips with USDA hardiness zone awareness.
 
-**Live Demo**: [https://catgardener.lovable.app](https://catgardener.lovable.app)
-
 ---
 
 ## 📋 Table of Contents
@@ -417,4 +415,3 @@ This project is open source and available under the [MIT License](LICENSE).
 - [USDA Plant Hardiness Zone Map](https://planthardiness.ars.usda.gov/) for zone data reference
 
 ---
-
